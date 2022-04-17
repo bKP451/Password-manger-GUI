@@ -10,6 +10,8 @@ It is made using tkinter 8.6.
 
 If you want to try this desktop app.
 Then clone the repo.
+
+[This is optional]
  ```
  pip install pyperclip
  ```
