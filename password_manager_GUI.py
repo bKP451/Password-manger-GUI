@@ -2,6 +2,7 @@ import tkinter
 from tkinter import messagebox
 import random
 import pyperclip
+import json
 # -------PASSWORD GENERATOR --------#
 
 
@@ -38,6 +39,13 @@ def save():
     website_name = web_entry.get()
     user_name = web_username.get()
     password = web_password.get()
+
+    to_be_written_json = {
+        website_name: {
+            "email": user_name,
+            "password": password
+        }
+    }
     if len(website_name) < 1 or len(password) < 1:
         messagebox.showinfo(title="Oops", message="Do not leave any field empty!")
     else:
@@ -45,10 +53,46 @@ def save():
                                                                          f" {password}. Do you want to save it?")
         # print(website_name, user_name, password)
         if user_choice:
-            with open('data.txt', mode='a') as valuables:
-                valuables.write(f"{website_name} | {user_name} | {password} \n")
+            # print(to_be_written_json)
+            try:
+                #  reads the data.json file
+                with open('data.json', mode='r') as valuables:
+                    # Reading  old data
+                    data = json.load(valuables)
+                    # print(type(data)) gives <class 'dict'>
+            except FileNotFoundError:
+                # if there is no data.json, then  it  creates the file data.json
+                with open('data.json', mode='w') as valuables:
+                    json.dump(to_be_written_json, valuables, indent=4)
+            else:
+                # update the dictionary to be written into  the data.json file
+                with open('data.json', mode='w') as valuables:
+                    data.update(to_be_written_json)
+                    json.dump(data, valuables, indent=4)
+            finally:
                 web_entry.delete(0, 'end')
                 web_password.delete(0, 'end')
+
+
+def find_password():
+    webpage_exists = None
+    website_name = web_entry.get()
+    try:
+        with open('data.json', mode='r') as valuables:
+            # Reading  old data
+            data = json.load(valuables)
+    except json.decoder.JSONDecodeError:
+        messagebox.showinfo(title="Oops", message="No data file found")
+    else:
+        for web_name in data:
+            if website_name == web_name:
+                webpage_exists = True
+
+        if webpage_exists:
+            messagebox.showinfo(title="Your  info", message=f"email:{data[website_name]['email']} "
+                                                        f"password:{data[website_name]['password']}")
+        else:
+            messagebox.showinfo("oops", f"No details for the website {website_name}")
 
 
 # -----------------------UI SETUP---------------------------------#
@@ -63,10 +107,12 @@ canvas.create_image(100, 100, image=logo_)
 canvas.grid(row=0, column=1)
 web_label = tkinter.Label(text="Website:")
 web_label.grid(row=1, column=0)
-web_entry = tkinter.Entry(width=35)
+web_entry = tkinter.Entry(width=15)
 # Sets the focus on the Website entry
 web_entry.focus_set()
-web_entry.grid(row=1, column=1, columnspan=2)
+web_entry.grid(row=1, column=1)
+search_button = tkinter.Button(text="Search", command=find_password)
+search_button.grid(row=1, column=2)
 username_label = tkinter.Label(text="Email/Username:")
 username_label.grid(row=2, column=0)
 web_username = tkinter.Entry(width=35)
